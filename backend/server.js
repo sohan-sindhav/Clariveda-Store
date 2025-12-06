@@ -24,7 +24,7 @@ app.use(
 );
 
 app.use(
-  cors({ origin: "https://clariveda-store.vercel.app/", credentials: true })
+  cors({ origin: "https://clariveda-store.vercel.app", credentials: true })
 );
 
 app.use(
