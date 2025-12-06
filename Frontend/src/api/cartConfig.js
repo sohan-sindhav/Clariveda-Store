@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:5000";
+const API_BASE_URL = "https://clariveda-store.onrender.com:5000";
 
 // Create axios instance for cart-related requests
 export const axiosCart = axios.create({
