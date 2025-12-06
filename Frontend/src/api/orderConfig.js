@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const axiosOrder = axios.create({
-  baseURL: "http://localhost:5000/api/orders",
+  baseURL: "https://clariveda-store.onrender.com:5000/api/orders",
   withCredentials: true,
 });
 
