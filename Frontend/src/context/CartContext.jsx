@@ -10,7 +10,6 @@ import { axiosCart, CART_ENDPOINTS } from "../api/cartConfig";
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-  // 🧩 Load from localStorage first
   const [cart, setCart] = useState(() => {
     const saved = localStorage.getItem("cart");
     return saved ? JSON.parse(saved) : { items: [] };
@@ -21,26 +20,23 @@ export const CartProvider = ({ children }) => {
   const [isPendingSync, setIsPendingSync] = useState(false);
   const [syncError, setSyncError] = useState(false);
 
-  // 🧹 Save cart locally whenever changed
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
 
-  // 🧠 Debounce sync to backend after 2s
   const triggerBackendSync = () => {
     setIsPendingSync(true);
     clearTimeout(syncTimer.current);
     syncTimer.current = setTimeout(syncToBackend, 1000);
   };
 
-  // ☁️ Sync local cart to backend
   const syncToBackend = async () => {
     try {
       setIsSyncing(true);
       setSyncError(false);
       await axiosCart.post(CART_ENDPOINTS.sync, { items: cart.items });
     } catch (err) {
-      console.error("❌ Cart sync failed:", err.message);
+      console.error("Cart sync failed:", err.message);
       setSyncError(true);
     } finally {
       setIsSyncing(false);
@@ -48,12 +44,10 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  // 🧹 Cleanup timeout when unmounting
   useEffect(() => {
     return () => clearTimeout(syncTimer.current);
   }, []);
 
-  // 🛒 Add or update product locally
   const addToCart = (productId, newQty = 1, productData = null) => {
     setCart((prevCart) => {
       const updatedItems = [...prevCart.items];
@@ -63,7 +57,6 @@ export const CartProvider = ({ children }) => {
 
       if (existing) {
         if (newQty <= 0) {
-          // remove
           return {
             ...prevCart,
             items: updatedItems.filter((i) => i !== existing),
@@ -84,7 +77,6 @@ export const CartProvider = ({ children }) => {
     triggerBackendSync();
   };
 
-  // ❌ Remove product locally
   const removeFromCart = (productId) => {
     setCart((prevCart) => ({
       ...prevCart,
@@ -96,20 +88,16 @@ export const CartProvider = ({ children }) => {
     triggerBackendSync();
   };
 
-  // 🧹 Clear all
   const clearCart = async () => {
     try {
       setCart({ items: [] });
       localStorage.removeItem("cart");
-
-      // clear from backend too
       await axiosCart.post(CART_ENDPOINTS.sync, { items: [] });
     } catch (err) {
       console.error("Failed to clear backend cart:", err.message);
     }
   };
 
-  // 🔄 Load cart from backend on refresh/login
   const fetchCart = async () => {
     try {
       const { data } = await axiosCart.get(CART_ENDPOINTS.get);
@@ -121,11 +109,10 @@ export const CartProvider = ({ children }) => {
         localStorage.removeItem("cart");
       }
     } catch (err) {
-      console.error("⚠️ Error fetching cart:", err.message);
+      console.error("Error fetching cart:", err.message);
     }
   };
 
-  // 🪄 Fetch on mount
   useEffect(() => {
     fetchCart();
   }, []);
@@ -138,7 +125,7 @@ export const CartProvider = ({ children }) => {
         removeFromCart,
         clearCart,
         fetchCart,
-        syncToBackend, // ✅ expose manual sync
+        syncToBackend,
         isSyncing,
         isPendingSync,
         syncError,

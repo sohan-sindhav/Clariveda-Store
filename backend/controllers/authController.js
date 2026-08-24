@@ -1,8 +1,9 @@
 import User from "../models/user.js";
 import dotenv from "dotenv";
-dotenv.config();
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+
+dotenv.config();
 
 function assignJwtToken(req, res, user, responseMessage) {
   const token = jwt.sign(
@@ -18,7 +19,7 @@ function assignJwtToken(req, res, user, responseMessage) {
 
   res.cookie("token", token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV == "production",
+    secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
@@ -33,16 +34,15 @@ export const RegisterController = async (req, res) => {
     const isuserExist = await User.findOne({ email });
     if (isuserExist) {
       return res.status(201).json({ message: "User exist ! Login instead" });
-    } else {
-      const user = new User({ username, email, password });
-      await user.save();
-      assignJwtToken(req, res, user, "Registration successful");
     }
+
+    const user = new User({ username, email, password });
+    await user.save();
+    assignJwtToken(req, res, user, "Registration successful");
   } catch (error) {
     res.status(500).json({
-      error: { message: "Internal server error ", detailed: error.message },
+      error: { message: "Internal server error", detailed: error.message },
     });
-    console.log(error.message);
   }
 };
 
@@ -50,7 +50,6 @@ export const LoginController = async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email }).select("+password");
-    console.log(user);
 
     if (!user) {
       return res
@@ -93,7 +92,7 @@ export const getProfile = async (req, res) => {
 export const Logout = async (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
-    secure: process.env.NODE_ENV == "production",
+    secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
   });
   res.status(200).json({ message: "logged out !!" });

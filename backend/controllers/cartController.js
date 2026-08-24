@@ -1,15 +1,8 @@
-// controllers/cartController.js
 import Cart from "../models/cart.js";
 import Product from "../models/product.js";
 
-/**
- * Helper to get canonical user id
- */
 const getUserId = (req) => req.user?._id || req.user?.id;
 
-/**
- * Add / update / remove single product in user's cart (keeps DB items as { product: ObjectId, quantity })
- */
 export const addToCart = async (req, res) => {
   try {
     const userId = getUserId(req);
@@ -67,20 +60,14 @@ export const addToCart = async (req, res) => {
       cart: updatedCart,
     });
   } catch (error) {
-    console.error("Add to cart error:", error);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Error updating cart.",
-        error: error.message,
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Error updating cart.",
+      error: error.message,
+    });
   }
 };
 
-/**
- * Get user cart
- */
 export const getCart = async (req, res) => {
   try {
     const userId = getUserId(req);
@@ -93,31 +80,23 @@ export const getCart = async (req, res) => {
     );
 
     if (!cart) {
-      return res
-        .status(200)
-        .json({
-          success: true,
-          message: "Cart is empty.",
-          cart: { items: [] },
-        });
+      return res.status(200).json({
+        success: true,
+        message: "Cart is empty.",
+        cart: { items: [] },
+      });
     }
 
     return res.status(200).json({ success: true, cart });
   } catch (error) {
-    console.error("Get cart error:", error);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Error fetching cart.",
-        error: error.message,
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching cart.",
+      error: error.message,
+    });
   }
 };
 
-/**
- * Remove specific product by productId param
- */
 export const removeFromCart = async (req, res) => {
   try {
     const userId = getUserId(req);
@@ -146,28 +125,20 @@ export const removeFromCart = async (req, res) => {
       "productname price imageUrl description type"
     );
 
-    return res
-      .status(200)
-      .json({
-        success: true,
-        message: "Product removed successfully.",
-        cart: updatedCart,
-      });
+    return res.status(200).json({
+      success: true,
+      message: "Product removed successfully.",
+      cart: updatedCart,
+    });
   } catch (error) {
-    console.error("Remove from cart error:", error);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Error removing product.",
-        error: error.message,
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Error removing product.",
+      error: error.message,
+    });
   }
 };
 
-/**
- * Clear entire cart
- */
 export const clearCart = async (req, res) => {
   try {
     const userId = getUserId(req);
@@ -187,21 +158,14 @@ export const clearCart = async (req, res) => {
       .status(200)
       .json({ success: true, message: "Cart cleared successfully.", cart });
   } catch (error) {
-    console.error("Clear cart error:", error);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Error clearing cart.",
-        error: error.message,
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Error clearing cart.",
+      error: error.message,
+    });
   }
 };
 
-/**
- * Sync cart from client: ensure product stored as ObjectId and return populated cart
- * Expects body: { items: [{ product: {_id?: string} | string, quantity: number }, ... ] }
- */
 export const syncCart = async (req, res) => {
   try {
     const userId = getUserId(req);
@@ -210,14 +174,13 @@ export const syncCart = async (req, res) => {
 
     const { items = [] } = req.body;
 
-    // sanitize: ensure array of { product: ObjectId string, quantity: Number }
     const sanitized = items
       .filter((it) => it && Number(it.quantity) > 0)
       .map((it) => {
         const productId = it.product && (it.product._id || it.product);
         return { product: productId, quantity: Number(it.quantity) };
       })
-      .filter((it) => it.product); // remove items lacking product id
+      .filter((it) => it.product);
 
     let cart = await Cart.findOne({ user: userId });
     if (!cart) {
@@ -235,13 +198,10 @@ export const syncCart = async (req, res) => {
 
     return res.status(200).json({ success: true, cart: populatedCart });
   } catch (error) {
-    console.error("Cart sync error:", error);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Cart sync failed",
-        error: error.message,
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Cart sync failed",
+      error: error.message,
+    });
   }
 };

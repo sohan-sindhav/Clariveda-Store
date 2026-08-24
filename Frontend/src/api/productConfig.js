@@ -1,14 +1,15 @@
 import axios from "axios";
-
-const API_BASE_URL = "https://clariveda-store.onrender.com:5000";
+import { BACKEND_URL } from "../config/env";
 
 export const axiosProduct = axios.create({
-  baseURL: API_BASE_URL,
-  withCredentials: true, // ensures cookies (JWT) are sent with requests
+  baseURL: BACKEND_URL,
+  withCredentials: true,
 });
 
 export const PRODUCT_ENDPOINTS = {
-  upload: "/api/products/create", // ✅ match your route name
+  upload: "/api/products/create",
   all: "/api/products/all",
-  delete: (id) => `/api/products/${id}`, // ✅ make it a function for dynamic IDs
+  getById: (id) => `/api/products/${id}`,
+  update: (id) => `/api/products/${id}`,
+  delete: (id) => `/api/products/${id}`,
 };

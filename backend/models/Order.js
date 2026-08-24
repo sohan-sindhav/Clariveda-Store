@@ -1,4 +1,3 @@
-// models/Order.js
 import mongoose from "mongoose";
 
 const orderItemSchema = new mongoose.Schema({
@@ -14,7 +13,7 @@ const orderItemSchema = new mongoose.Schema({
   },
   priceAtPurchase: {
     type: Number,
-    required: true, // store price at order time in case it changes later
+    required: true,
   },
 });
 
@@ -28,17 +27,24 @@ const orderSchema = new mongoose.Schema(
     items: [orderItemSchema],
 
     shippingAddress: {
+      name: { type: String },
       fullName: { type: String },
       phone: { type: String },
+      address: { type: String },
       addressLine: { type: String },
       city: { type: String },
-      postalCode: { type: String },
       state: { type: String },
-      country: { type: String },
+      zip: { type: String },
+      postalCode: { type: String },
+      country: { type: String, default: "India" },
     },
 
     paymentInfo: {
-      method: { type: String, enum: ["COD", "Card", "UPI"], default: "COD" },
+      method: {
+        type: String,
+        enum: ["COD", "Card", "UPI", "Online", "Razorpay"],
+        default: "COD",
+      },
       transactionId: { type: String },
       gatewayOrderId: { type: String },
       status: {
@@ -53,10 +59,17 @@ const orderSchema = new mongoose.Schema(
       required: true,
     },
 
-    // <-- include "Pending" in order-level status enum
     status: {
       type: String,
-      enum: ["Pending", "Processing", "Shipped", "Delivered", "Cancelled"],
+      enum: [
+        "Pending",
+        "Processing",
+        "Accepted",
+        "Shipped",
+        "Out for Delivery",
+        "Delivered",
+        "Cancelled",
+      ],
       default: "Pending",
     },
   },

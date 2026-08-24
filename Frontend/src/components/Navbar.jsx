@@ -1,108 +1,128 @@
 import React from "react";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
-import { Link, useNavigate } from "react-router-dom";
-import { FaShoppingCart, FaLeaf, FaUser } from "react-icons/fa";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { FaShoppingCart, FaLeaf, FaUser, FaBox, FaPlusCircle } from "react-icons/fa";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const { cart } = useCart();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const cartCount =
     cart?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
 
   return (
-    <nav className="bg-gradient-to-r from-amber-700 to-green-800 text-white shadow-lg relative">
-      {/* Main Navbar Content */}
-      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-        {/* Brand Logo */}
-        <div
-          onClick={() => navigate("/dashboard")}
-          className="flex items-center space-x-3 cursor-pointer group flex-shrink-0"
-        >
-          <div className="relative">
-            <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-              <FaLeaf className="text-amber-700 text-lg" />
-            </div>
-            <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+    <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+        <Link to="/dashboard" className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white">
+            <FaLeaf size={16} />
           </div>
           <div className="flex flex-col">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-amber-100 to-green-100 bg-clip-text text-transparent leading-tight">
+            <span className="font-bold text-gray-900 text-lg leading-tight">
               Clariveda
-            </h1>
-            <p className="text-xs text-amber-200 opacity-80 group-hover:opacity-100 transition-opacity duration-300 leading-tight">
-              Ayurvedic Wellness
-            </p>
+            </span>
+            <span className="text-[10px] text-emerald-700 font-medium tracking-wide uppercase">
+              Ayurvedic Store
+            </span>
           </div>
-        </div>
+        </Link>
 
-        {/* Right section */}
-        <div className="flex items-center space-x-4 lg:space-x-6 ml-4">
-          {/* Cart with Ayurvedic styling */}
-          <div
-            onClick={() => navigate("/cart")}
-            className="relative cursor-pointer group flex-shrink-0"
+        <nav className="flex items-center gap-1 sm:gap-4">
+          <Link
+            to="/dashboard"
+            className={`px-3 py-1.5 text-sm font-medium rounded-md transition ${
+              location.pathname === "/dashboard"
+                ? "text-emerald-700 bg-emerald-50"
+                : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+            }`}
           >
-            <div className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-all duration-300 group-hover:scale-110">
-              <FaShoppingCart className="text-amber-100" size={18} />
-            </div>
+            Products
+          </Link>
+
+          {user && (
+            <Link
+              to="/myOrders"
+              className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition ${
+                location.pathname === "/myOrders"
+                  ? "text-emerald-700 bg-emerald-50"
+                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+              }`}
+            >
+              <FaBox size={13} />
+              <span>Orders</span>
+            </Link>
+          )}
+
+          {user?.role === "admin" && (
+            <Link
+              to="/admin/dashboard"
+              className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition ${
+                location.pathname.startsWith("/admin") || location.pathname === "/product/upload"
+                  ? "text-purple-700 bg-purple-50"
+                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+              }`}
+            >
+              <FaPlusCircle size={13} />
+              <span>Admin</span>
+            </Link>
+          )}
+
+          <Link
+            to="/cart"
+            className="relative p-2 text-gray-700 hover:text-emerald-600 hover:bg-gray-100 rounded-md transition"
+            title="Cart"
+          >
+            <FaShoppingCart size={18} />
             {cartCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-400 text-white text-xs font-bold px-1.5 py-0.5 rounded-full border-2 border-amber-700 shadow-lg min-w-[20px] text-center">
+              <span className="absolute -top-1 -right-1 bg-emerald-600 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">
                 {cartCount}
               </span>
             )}
-            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-amber-200 group-hover:w-full transition-all duration-300"></div>
-          </div>
+          </Link>
 
-          {/* Auth Info */}
           {user ? (
-            <div className="flex items-center space-x-3 lg:space-x-4">
-              {/* User Profile */}
+            <div className="flex items-center gap-2 pl-2 border-l border-gray-200">
               <Link
                 to="/userProfile"
-                className="flex items-center space-x-2 bg-white/10 hover:bg-white/20 px-3 py-2 lg:px-4 lg:py-2 rounded-lg transition-all duration-300 group flex-shrink-0"
+                className="flex items-center gap-2 p-1.5 rounded-md hover:bg-gray-50 text-gray-700"
+                title="Profile"
               >
-                <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <FaUser className="text-amber-700 text-sm" />
+                <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-semibold text-xs">
+                  {user.username ? user.username[0].toUpperCase() : <FaUser size={12} />}
                 </div>
-                <div className="text-left hidden sm:block">
-                  <p className="text-amber-100 font-medium text-sm leading-tight">
-                    {user.username || "User"}
-                  </p>
-                  <p className="text-amber-200 text-xs opacity-80 group-hover:opacity-100 transition-opacity duration-300 leading-tight">
-                    Your Profile
-                  </p>
-                </div>
+                <span className="text-sm font-medium text-gray-800 hidden md:inline">
+                  {user.username}
+                </span>
               </Link>
-
-              {/* Logout Button */}
               <button
                 onClick={logout}
-                className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 px-3 py-2 lg:px-4 lg:py-2 rounded-lg text-sm font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl border border-amber-400/30 flex-shrink-0 whitespace-nowrap"
+                className="text-xs font-medium text-gray-600 hover:text-red-600 border border-gray-300 hover:border-red-200 hover:bg-red-50 px-2.5 py-1.5 rounded-md transition"
               >
                 Logout
               </button>
             </div>
           ) : (
-            <div className="flex items-center space-x-3">
-              <span className="text-amber-200 italic text-sm bg-white/10 px-3 py-1 rounded-full hidden md:block flex-shrink-0">
-                Welcome to Ayurveda
-              </span>
+            <div className="flex items-center gap-2 pl-2 border-l border-gray-200">
               <Link
                 to="/login"
-                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 transform hover:scale-105 flex-shrink-0 whitespace-nowrap"
+                className="text-sm font-medium text-gray-700 hover:text-gray-900 px-3 py-1.5 rounded-md hover:bg-gray-50"
               >
                 Login
               </Link>
+              <Link
+                to="/register"
+                className="text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded-md shadow-sm transition"
+              >
+                Sign Up
+              </Link>
             </div>
           )}
-        </div>
+        </nav>
       </div>
-
-      {/* Subtle decorative bottom border - removed the thick line */}
-      <div className="h-0.5 bg-gradient-to-r from-amber-400 via-green-400 to-amber-400 opacity-30"></div>
-    </nav>
+    </header>
   );
 };
 

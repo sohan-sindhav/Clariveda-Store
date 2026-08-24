@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { axiosOrder, ORDER_ENDPOINTS } from "../api/orderConfig";
-import { FaBoxOpen, FaCalendarAlt, FaRupeeSign } from "react-icons/fa";
+import { FaCalendarAlt, FaBoxOpen, FaArrowRight } from "react-icons/fa";
 
 const MyOrders = () => {
   const navigate = useNavigate();
@@ -24,100 +24,119 @@ const MyOrders = () => {
     fetchOrders();
   }, []);
 
-  if (loading)
-    return <div className="text-center mt-20">Loading orders...</div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="py-20 text-center">
+          <div className="inline-block w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mb-3"></div>
+          <p className="text-gray-500 text-sm">Loading your orders...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-12">
       <Navbar />
-      <div className="max-w-5xl mx-auto p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-semibold text-gray-800">My Orders</h1>
-          <div className="text-sm text-gray-500">{orders.length} orders</div>
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+        <div className="flex items-center justify-between mb-6 pb-3 border-b border-gray-200">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">My Orders</h1>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {orders.length} total order{orders.length !== 1 ? "s" : ""} placed
+            </p>
+          </div>
+          <Link
+            to="/dashboard"
+            className="text-xs font-medium text-emerald-600 hover:text-emerald-700 hover:underline"
+          >
+            Browse Products
+          </Link>
         </div>
 
         {orders.length === 0 ? (
-          <div className="text-gray-500 text-lg">
-            You haven’t placed any orders yet 🛍️
+          <div className="bg-white border border-gray-200 rounded-lg p-12 text-center max-w-md mx-auto my-8">
+            <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 text-gray-400">
+              <FaBoxOpen size={24} />
+            </div>
+            <h2 className="text-base font-semibold text-gray-800 mb-1">No orders found</h2>
+            <p className="text-xs text-gray-500 mb-4">You haven't placed any orders yet.</p>
+            <Link
+              to="/dashboard"
+              className="inline-block bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2 rounded-md shadow-sm transition"
+            >
+              Start Shopping
+            </Link>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {orders.map((order) => (
               <div
                 key={order._id}
-                className="bg-white rounded-2xl p-5 shadow-sm border border-gray-200"
+                className="bg-white border border-gray-200 rounded-lg p-5 hover:border-gray-300 transition shadow-sm"
               >
-                <div className="flex justify-between items-start mb-3">
+                <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-gray-100">
                   <div>
-                    <h2 className="font-semibold text-gray-700">
-                      Order #{order._id.slice(-8).toUpperCase()}
-                    </h2>
-                    <div className="text-xs text-gray-500 mt-1 flex items-center space-x-3">
-                      <span className="flex items-center space-x-1">
-                        <FaCalendarAlt />{" "}
-                        <span>
-                          {new Date(order.createdAt).toLocaleString()}
-                        </span>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-sm text-gray-900">
+                        Order #{order._id.slice(-8).toUpperCase()}
                       </span>
-                      <span className="px-2 py-0.5 rounded-full text-xs bg-amber-50 text-amber-700 border border-amber-100">
+                      <span className="px-2 py-0.5 text-[11px] font-medium rounded-full bg-blue-50 text-blue-700 border border-blue-200">
                         {order.status}
                       </span>
                     </div>
+                    <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1.5">
+                      <FaCalendarAlt size={10} />
+                      <span>{new Date(order.createdAt).toLocaleDateString()} at {new Date(order.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                    </p>
                   </div>
 
                   <div className="text-right">
-                    <div className="text-lg font-semibold text-gray-800 flex items-center justify-end">
-                      <FaRupeeSign className="mr-1" />
-                      {order.totalAmount}
-                    </div>
-                    <button
-                      onClick={() => navigate(`/order/${order._id}`)}
-                      className="mt-3 inline-block text-sm text-white bg-gradient-to-r from-green-500 to-amber-500 px-3 py-1 rounded-lg shadow"
-                    >
-                      View Details
-                    </button>
+                    <span className="text-sm font-bold text-gray-900 block">
+                      ₹{order.totalAmount}
+                    </span>
+                    <span className="text-[11px] text-gray-500">
+                      {order.paymentInfo?.method || "COD"} • {order.paymentInfo?.status || "Pending"}
+                    </span>
                   </div>
                 </div>
 
-                <div className="divide-y divide-gray-100">
-                  <div className="py-3 flex items-center gap-4">
-                    {/* show up to 3 product thumbnails */}
-                    <div className="flex -space-x-3">
+                <div className="pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex -space-x-2">
                       {order.items.slice(0, 3).map((it, idx) => (
                         <img
                           key={idx}
                           src={it.product?.imageUrl || "/placeholder.png"}
                           alt={it.product?.productname}
-                          className="w-12 h-12 object-cover rounded-md border"
+                          className="w-10 h-10 object-contain rounded-md border border-gray-200 bg-white p-0.5"
                         />
                       ))}
                     </div>
-
-                    <div className="text-sm text-gray-600">
-                      {order.items.length} item
-                      {order.items.length !== 1 ? "s" : ""} •{" "}
-                      {order.paymentInfo?.method || "COD"} •{" "}
-                      {order.paymentInfo?.status || "Pending"}
+                    <div className="text-xs text-gray-600">
+                      <p className="font-medium text-gray-800">
+                        {order.items.length} item{order.items.length !== 1 ? "s" : ""}
+                      </p>
+                      <p className="text-gray-500 truncate max-w-xs">
+                        Ship to: {order.shippingAddress?.name || "-"}, {order.shippingAddress?.city || "-"}
+                      </p>
                     </div>
                   </div>
 
-                  <div className="py-3 text-sm text-gray-600">
-                    <div>
-                      <strong>Ship to:</strong>{" "}
-                      {order.shippingAddress?.name || "-"},{" "}
-                      {order.shippingAddress?.city || "-"}
-                    </div>
-                    <div className="mt-1">
-                      <strong>Payment:</strong> {order.paymentInfo?.method} —{" "}
-                      {order.paymentInfo?.status}
-                    </div>
-                  </div>
+                  <button
+                    onClick={() => navigate(`/order/${order._id}`)}
+                    className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3.5 py-1.5 rounded-md transition"
+                  >
+                    <span>View Order Details</span>
+                    <FaArrowRight size={10} />
+                  </button>
                 </div>
               </div>
             ))}
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 };

@@ -1,9 +1,8 @@
 import axios from "axios";
-
-const API_BASE_URL = "https://clariveda-store.onrender.com:5000";
+import { BACKEND_URL } from "../config/env";
 
 export const axiosInstance = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: BACKEND_URL,
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",

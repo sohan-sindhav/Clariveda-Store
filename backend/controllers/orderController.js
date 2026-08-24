@@ -1,23 +1,15 @@
-// controllers/orderController.js
 import Order from "../models/Order.js";
 import Cart from "../models/cart.js";
-import mongoose from "mongoose";
-import razorpay from "../configs/razorpay.js"; // <-- new: require this file (see note below)
+import razorpay from "../configs/razorpay.js";
 
-/**
- * Helper to get canonical user id
- */
 const getUserId = (req) => req.user?._id || req.user?.id;
 
-/**
- * Create new order from user's cart (expects shippingAddress + paymentMethod in body)
- */
-// inside controllers/orderController.js — replace existing createOrder with this
 export const createOrder = async (req, res) => {
   try {
     const userId = getUserId(req);
-    if (!userId)
+    if (!userId) {
       return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
 
     const { paymentMethod = "COD", shippingAddress = {} } = req.body;
 
@@ -34,35 +26,29 @@ export const createOrder = async (req, res) => {
 
     const cart = await Cart.findOne({ user: userId }).populate("items.product");
     if (!cart || !cart.items || cart.items.length === 0) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message:
-            "Your cart is empty or not synced. Please try again after syncing.",
-        });
+      return res.status(400).json({
+        success: false,
+        message:
+          "Your cart is empty or not synced. Please try again after syncing.",
+      });
     }
 
     const orderItems = [];
     for (const item of cart.items) {
       if (!item.product) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message: "Cart contains invalid product data. Please resync cart.",
-          });
+        return res.status(400).json({
+          success: false,
+          message: "Cart contains invalid product data. Please resync cart.",
+        });
       }
       const prodId = item.product._id || item.product;
       const price = Number(item.product.price || 0);
       const qty = Number(item.quantity || 0);
       if (!prodId || qty <= 0) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message: "Invalid cart item found. Please resync cart.",
-          });
+        return res.status(400).json({
+          success: false,
+          message: "Invalid cart item found. Please resync cart.",
+        });
       }
       orderItems.push({
         product: prodId,
@@ -75,63 +61,27 @@ export const createOrder = async (req, res) => {
       (s, i) => s + i.priceAtPurchase * i.quantity,
       0
     );
-    console.log(
-      "createOrder: user:",
-      userId,
-      "paymentMethod:",
-      paymentMethod,
-      "totalAmount:",
-      totalAmount
-    );
 
     if (totalAmount <= 0) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Order total must be greater than 0.",
-        });
-    }
-
-    // Razorpay requires minimum amount (usually >= 1 INR = 100 paise). Enforce a guard:
-    const minPaise = 100; // 1 INR
-    if (Math.round(totalAmount * 100) < minPaise && paymentMethod !== "COD") {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: `Amount too small for gateway payments. Minimum is ₹${(
-            minPaise / 100
-          ).toFixed(2)}.`,
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Order total must be greater than 0.",
+      });
     }
 
     const newOrder = await Order.create({
       user: userId,
       items: orderItems,
       totalAmount,
-      paymentInfo: { method: paymentMethod, status: "Pending" },
+      paymentInfo: {
+        method: paymentMethod,
+        status: "Pending",
+      },
       shippingAddress,
       status: paymentMethod === "COD" ? "Processing" : "Pending",
     });
 
-    // If payment is non-COD -> create Razorpay order
     if (paymentMethod !== "COD") {
-      // Basic env/key checks
-      if (!process.env.RZP_KEY_ID || !process.env.RZP_KEY_SECRET) {
-        console.error(
-          "Razorpay keys missing. RZP_KEY_ID or RZP_KEY_SECRET not set."
-        );
-        // cleanup created order (optional)
-        await Order.findByIdAndDelete(newOrder._id).catch(() => {});
-        return res
-          .status(500)
-          .json({
-            success: false,
-            message: "Payment gateway misconfiguration on server.",
-          });
-      }
-
       try {
         const rzpOrder = await razorpay.orders.create({
           amount: Math.round(totalAmount * 100),
@@ -149,68 +99,56 @@ export const createOrder = async (req, res) => {
 
         return res.status(201).json({
           success: true,
-          message: "Order created, proceed to payment",
+          message: "Order initiated for payment",
           order: populatedOrder,
           rzpOrder,
         });
-      } catch (rzErr) {
-        // VERY explicit logging for debugging
-        console.error(
-          "Razorpay order create failed:",
-          rzErr && rzErr.message ? rzErr.message : rzErr
-        );
-        console.error("Razorpay error full:", rzErr);
-        // cleanup created order to avoid orphan orders
-        await Order.findByIdAndDelete(newOrder._id).catch(() => {});
+      } catch (rzpError) {
+        console.error("Razorpay order creation failed:", rzpError);
+        await Order.findByIdAndDelete(newOrder._id);
         return res.status(500).json({
           success: false,
-          message: "Failed to initiate payment. See server logs for details.",
-          error: rzErr?.message || String(rzErr),
+          message: "Failed to initiate Razorpay gateway order",
+          error: rzpError.message,
         });
       }
     }
 
-    // COD flow: clear cart and return
     await Cart.findOneAndUpdate({ user: userId }, { $set: { items: [] } });
-    const populatedOrderCOD = await Order.findById(newOrder._id).populate(
+
+    const populatedOrder = await Order.findById(newOrder._id).populate(
       "items.product",
       "productname price imageUrl description type"
     );
 
     return res.status(201).json({
       success: true,
-      message: "Order placed successfully (COD)!",
-      order: populatedOrderCOD,
+      message: "Order placed successfully!",
+      order: populatedOrder,
     });
   } catch (err) {
-    console.error("Order creation error stack:", err.stack || err);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Server error while creating order.",
-        error: err.message,
-      });
+    console.error("Order creation error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while creating order.",
+      error: err.message,
+    });
   }
 };
 
-/**
- * Get all orders for the current user
- */
 export const getUserOrders = async (req, res) => {
   try {
     const userId = getUserId(req);
     if (!userId)
       return res.status(401).json({ success: false, message: "Unauthorized" });
 
-    const orders = await Order.find({ user: userId }).populate(
-      "items.product",
-      "productname price imageUrl"
-    );
+    const orders = await Order.find({ user: userId })
+      .sort({ createdAt: -1 })
+      .populate("items.product", "productname price imageUrl");
 
     return res.status(200).json({ success: true, orders });
   } catch (error) {
-    console.error("Get User Orders Error:", error);
+    console.error("getUserOrders error:", error);
     return res.status(500).json({
       success: false,
       message: "Error fetching user orders.",
@@ -219,9 +157,6 @@ export const getUserOrders = async (req, res) => {
   }
 };
 
-/**
- * Get single order by id (ensure it belongs to the requesting user)
- */
 export const getOrderById = async (req, res) => {
   try {
     const userId = getUserId(req);
@@ -234,9 +169,14 @@ export const getOrderById = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Order id required." });
 
-    const order = await Order.findOne({ _id: id, user: userId }).populate(
-      "items.product"
-    );
+    let query = { _id: id };
+    if (req.user.role !== "admin") {
+      query.user = userId;
+    }
+
+    const order = await Order.findOne(query)
+      .populate("items.product")
+      .populate("user", "username email");
 
     if (!order)
       return res
@@ -245,10 +185,85 @@ export const getOrderById = async (req, res) => {
 
     return res.status(200).json({ success: true, order });
   } catch (error) {
-    console.error("Get Order Error:", error);
+    console.error("getOrderById error:", error);
     return res.status(500).json({
       success: false,
       message: "Error fetching order details.",
+      error: error.message,
+    });
+  }
+};
+
+export const getAllOrdersAdmin = async (req, res) => {
+  try {
+    const orders = await Order.find()
+      .sort({ createdAt: -1 })
+      .populate("items.product", "productname price imageUrl type")
+      .populate("user", "username email");
+
+    return res.status(200).json({
+      success: true,
+      count: orders.length,
+      orders,
+    });
+  } catch (error) {
+    console.error("getAllOrdersAdmin error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch all orders",
+      error: error.message,
+    });
+  }
+};
+
+export const updateOrderStatusAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const allowedStatuses = [
+      "Pending",
+      "Processing",
+      "Accepted",
+      "Shipped",
+      "Out for Delivery",
+      "Delivered",
+      "Cancelled",
+    ];
+
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid status. Allowed values: ${allowedStatuses.join(", ")}`,
+      });
+    }
+
+    const order = await Order.findById(id);
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    order.status = status;
+    if (status === "Delivered" && order.paymentInfo) {
+      order.paymentInfo.status = "Completed";
+    }
+
+    await order.save();
+
+    const populatedOrder = await Order.findById(id)
+      .populate("items.product", "productname price imageUrl type")
+      .populate("user", "username email");
+
+    return res.status(200).json({
+      success: true,
+      message: `Order status updated to ${status}`,
+      order: populatedOrder,
+    });
+  } catch (error) {
+    console.error("updateOrderStatusAdmin error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update order status",
       error: error.message,
     });
   }

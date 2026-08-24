@@ -1,8 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { axiosInstance, AUTH_ENDPOINTS } from "../api/authConfig";
-import { Children } from "react";
-import axios from "axios";
-import { Navigate } from "react-router-dom";
 
 const AuthContext = createContext();
 
@@ -49,7 +46,7 @@ export const AuthProvider = ({ children }) => {
         error.response?.data?.message ||
         "Registration failed. please try again.";
       setMessage({ type: "error", text: msg });
-      throw error; // ← FIXED: Changed 'err' to 'error'
+      throw error;
     } finally {
       setAuthLoading(false);
     }
@@ -66,10 +63,8 @@ export const AuthProvider = ({ children }) => {
         text: res.data.message || "Logged in successfully!",
       });
 
-      // wait a moment to ensure cookie sync
       await new Promise((resolve) => setTimeout(resolve, 200));
 
-      // fetch user from /me again (so React gets the user with cookie-based session)
       const meRes = await axiosInstance.get(AUTH_ENDPOINTS.me);
       setUser(meRes.data.user);
 
@@ -83,8 +78,6 @@ export const AuthProvider = ({ children }) => {
       setAuthLoading(false);
     }
   };
-
-  //logout
 
   const logout = async () => {
     try {

@@ -1,5 +1,4 @@
 import express from "express";
-const router = express.Router();
 import {
   getProfile,
   LoginController,
@@ -7,6 +6,8 @@ import {
   RegisterController,
 } from "../controllers/authController.js";
 import { verifyUser } from "../middleware/authMiddleware.js";
+
+const router = express.Router();
 
 router.post("/register", RegisterController);
 router.post("/login", LoginController);

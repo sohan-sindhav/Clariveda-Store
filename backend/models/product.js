@@ -18,7 +18,7 @@ const productSchema = new mongoose.Schema({
     required: true,
   },
   imageUrl: {
-    type: String, // will store Cloudinary URL
+    type: String,
     required: true,
   },
 });

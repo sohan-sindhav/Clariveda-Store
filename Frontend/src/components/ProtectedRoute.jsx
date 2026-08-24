@@ -15,7 +15,7 @@ const ProtectedRoute = () => {
 
   if (!user) return <Navigate to="/login" replace />;
 
-  return <Outlet />; // 👈 This renders nested routes
+  return <Outlet />;
 };
 
 export default ProtectedRoute;

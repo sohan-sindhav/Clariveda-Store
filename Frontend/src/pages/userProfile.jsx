@@ -1,13 +1,8 @@
 import React from "react";
 import { useAuth } from "../context/AuthContext";
-import {
-  FaLeaf,
-  FaUser,
-  FaEnvelope,
-  FaSignOutAlt,
-  FaHeart,
-} from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import Navbar from "../components/Navbar";
+import { FaUser, FaEnvelope, FaBox, FaSignOutAlt, FaShieldAlt } from "react-icons/fa";
 
 const UserProfile = () => {
   const navigate = useNavigate();
@@ -15,136 +10,93 @@ const UserProfile = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 to-green-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-xl border border-amber-100 p-8 text-center max-w-md w-full">
-          <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <FaUser className="text-amber-600 text-2xl" />
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white border border-gray-200 rounded-lg p-8 text-center max-w-sm w-full">
+          <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 text-gray-400">
+            <FaUser size={20} />
           </div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">
-            No User Found
-          </h2>
-          <p className="text-gray-600">Please log in to view your profile</p>
+          <h2 className="text-base font-semibold text-gray-800 mb-1">Not Signed In</h2>
+          <p className="text-xs text-gray-500 mb-4">Please sign in to access your profile.</p>
+          <Link
+            to="/login"
+            className="inline-block bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2 rounded-md shadow-sm transition"
+          >
+            Go to Login
+          </Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-green-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center shadow-lg">
-              <FaLeaf className="text-amber-700 text-3xl" />
-            </div>
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Your{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-700 to-green-700">
-              Wellness
-            </span>{" "}
-            Profile
-          </h1>
-          <p className="text-gray-600">Your Ayurvedic journey with Clariveda</p>
+    <div className="min-h-screen bg-gray-50 pb-12">
+      <Navbar />
 
-          {/* Decorative Elements */}
-          <div className="flex justify-center mt-4">
-            <div className="w-12 h-1 bg-amber-500 rounded-full mx-1"></div>
-            <div className="w-4 h-4 bg-green-500 rounded-full mx-1 mt-2"></div>
-            <div className="w-12 h-1 bg-amber-500 rounded-full mx-1"></div>
-          </div>
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+        <div className="mb-6 pb-3 border-b border-gray-200">
+          <h1 className="text-2xl font-bold text-gray-900">User Account</h1>
+          <p className="text-xs text-gray-500 mt-0.5">Manage your profile details and orders</p>
         </div>
 
-        {/* Profile Card */}
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-amber-100">
-          <div className="p-8">
-            {/* User Avatar */}
-            <div className="flex justify-center mb-6">
-              <div className="w-24 h-24 bg-gradient-to-r from-amber-400 to-green-500 rounded-full flex items-center justify-center shadow-lg">
-                <FaUser className="text-white text-3xl" />
-              </div>
+        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm mb-6">
+          <div className="flex items-center gap-4 pb-6 border-b border-gray-200">
+            <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-2xl border-2 border-emerald-200">
+              {user.username ? user.username[0].toUpperCase() : "U"}
             </div>
-
-            {/* User Info */}
-            <div className="space-y-6">
-              {/* Name Field */}
-              <div className="bg-amber-50 rounded-xl p-4 border border-amber-200">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
-                    <FaUser className="text-amber-600 text-sm" />
-                  </div>
-                  <div className="text-left">
-                    <p className="text-xs text-amber-600 font-medium">
-                      Full Name
-                    </p>
-                    <p className="text-gray-800 font-semibold">
-                      {user.name || user.username || "Not provided"}
-                    </p>
-                  </div>
-                </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-bold text-gray-900">{user.username || "User"}</h2>
+                <span className="px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded bg-gray-100 text-gray-700 border border-gray-200">
+                  {user.role || "user"}
+                </span>
               </div>
-
-              {/* Email Field */}
-              <div className="bg-green-50 rounded-xl p-4 border border-green-200">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                    <FaEnvelope className="text-green-600 text-sm" />
-                  </div>
-                  <div className="text-left">
-                    <p className="text-xs text-green-600 font-medium">
-                      Email Address
-                    </p>
-                    <p className="text-gray-800 font-semibold">{user.email}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Wellness Status */}
-              <div className="bg-amber-50/50 rounded-xl p-4 border border-amber-100 text-center">
-                <div className="flex items-center justify-center space-x-2 text-amber-700">
-                  <FaHeart className="text-amber-500" />
-                  <span className="text-sm font-medium">
-                    Active Wellness Member
-                  </span>
-                </div>
-                <p className="text-xs text-gray-600 mt-1">
-                  Thank you for choosing natural Ayurvedic care
-                </p>
-              </div>
+              <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+                <FaEnvelope size={11} />
+                <span>{user.email}</span>
+              </p>
             </div>
+          </div>
 
-            {/* Logout Button */}
+          <div className="py-5 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <div className="p-3 bg-gray-50 border border-gray-200 rounded-md">
+              <span className="text-gray-400 block mb-1">Username</span>
+              <span className="font-semibold text-gray-800 text-sm">{user.username || "-"}</span>
+            </div>
+            <div className="p-3 bg-gray-50 border border-gray-200 rounded-md">
+              <span className="text-gray-400 block mb-1">Registered Email</span>
+              <span className="font-semibold text-gray-800 text-sm">{user.email || "-"}</span>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-gray-200 flex flex-wrap gap-3">
             <button
               onClick={() => navigate("/myOrders")}
-              className="w-full mt-4 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 
-             text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 transform 
-             hover:scale-[1.02] shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 px-4 py-2 rounded-md shadow-sm transition"
             >
-              <span>My Orders</span>
+              <FaBox size={12} className="text-emerald-600" />
+              <span>View Order History</span>
             </button>
+
+            {user.role === "admin" && (
+              <button
+                onClick={() => navigate("/admin/dashboard")}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-purple-700 bg-purple-50 border border-purple-200 hover:bg-purple-100 px-4 py-2 rounded-md transition"
+              >
+                <FaShieldAlt size={12} />
+                <span>Admin Dashboard</span>
+              </button>
+            )}
+
             <button
               onClick={logout}
-              className="w-full mt-8 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-red-600 bg-red-50 border border-red-200 hover:bg-red-100 px-4 py-2 rounded-md transition ml-auto"
             >
-              <FaSignOutAlt className="text-sm" />
+              <FaSignOutAlt size={12} />
               <span>Sign Out</span>
             </button>
           </div>
         </div>
-
-        {/* Additional Info */}
-        <div className="text-center mt-6">
-          <p className="text-xs text-gray-500">
-            Your natural wellness journey matters to us
-          </p>
-        </div>
-
-        {/* Background Decorative Elements */}
-        <div className="fixed top-10 left-10 w-20 h-20 bg-amber-200 rounded-full opacity-20 blur-xl -z-10"></div>
-        <div className="fixed bottom-10 right-10 w-24 h-24 bg-green-200 rounded-full opacity-20 blur-xl -z-10"></div>
-        <div className="fixed top-1/3 right-1/4 w-16 h-16 bg-amber-300 rounded-full opacity-15 blur-lg -z-10"></div>
-      </div>
+      </main>
     </div>
   );
 };

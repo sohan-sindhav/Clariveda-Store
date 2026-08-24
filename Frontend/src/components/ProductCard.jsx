@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useCart } from "../context/CartContext";
+import { FaPlus, FaMinus, FaShoppingCart } from "react-icons/fa";
 
 const ProductCard = ({ product }) => {
   const { addToCart, cart } = useCart();
@@ -22,14 +23,14 @@ const ProductCard = ({ product }) => {
     if (isProcessing) return;
     setIsProcessing(true);
     await addToCart(product._id, 1, product);
-    setTimeout(() => setIsProcessing(false), 300);
+    setTimeout(() => setIsProcessing(false), 200);
   };
 
   const handleIncrease = async () => {
     if (isProcessing) return;
     setIsProcessing(true);
     await addToCart(product._id, quantity + 1, product);
-    setTimeout(() => setIsProcessing(false), 300);
+    setTimeout(() => setIsProcessing(false), 200);
   };
 
   const handleDecrease = async () => {
@@ -40,74 +41,74 @@ const ProductCard = ({ product }) => {
     } else {
       await addToCart(product._id, 0, product);
     }
-    setTimeout(() => setIsProcessing(false), 300);
+    setTimeout(() => setIsProcessing(false), 200);
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-md hover:shadow-lg transition-all p-4 flex flex-col">
-      <div className="w-full h-48 flex items-center justify-center overflow-hidden rounded-xl mb-4 bg-gray-50">
+    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition flex flex-col justify-between">
+      <div className="w-full h-48 bg-gray-50 flex items-center justify-center p-3 overflow-hidden border-b border-gray-100">
         <img
-          src={product.imageUrl}
+          src={product.imageUrl || "/placeholder.png"}
           alt={product.productname}
-          className="w-auto h-full object-cover"
+          className="max-h-full max-w-full object-contain hover:scale-105 transition duration-200"
         />
       </div>
 
-      <div className="flex-1 flex flex-col justify-between">
+      <div className="p-4 flex-1 flex flex-col justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-gray-800 mb-1 truncate">
+          <div className="flex items-center justify-between gap-2 mb-1.5">
+            <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded uppercase tracking-wider">
+              {product.type || "Ayurvedic"}
+            </span>
+          </div>
+
+          <h3 className="font-semibold text-gray-900 text-base leading-snug line-clamp-1 mb-1" title={product.productname}>
             {product.productname}
-          </h2>
-          <p className="text-sm text-gray-500 line-clamp-2 mb-2">
+          </h3>
+
+          <p className="text-xs text-gray-500 line-clamp-2 mb-3">
             {product.description}
           </p>
         </div>
 
-        <div className="mt-auto">
-          <p className="text-gray-800 font-medium mb-1">₹{product.price}</p>
-          <p className="text-xs text-gray-400 uppercase mb-3">{product.type}</p>
+        <div className="pt-2 border-t border-gray-100 flex items-center justify-between mt-auto">
+          <div>
+            <span className="text-xs text-gray-400 block">Price</span>
+            <span className="text-lg font-bold text-gray-900">₹{product.price}</span>
+          </div>
 
-          {quantity === 0 ? (
-            <button
-              onClick={handleAddToCart}
-              disabled={isProcessing}
-              className={`w-full text-white text-sm py-2 rounded-md transition-all duration-300 ${
-                isProcessing
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-green-600 hover:bg-green-700 active:scale-95"
-              }`}
-            >
-              Add to Cart 🛒
-            </button>
-          ) : (
-            <div className="flex items-center justify-between bg-green-600 text-white rounded-md overflow-hidden">
+          <div>
+            {quantity === 0 ? (
               <button
-                onClick={handleDecrease}
+                onClick={handleAddToCart}
                 disabled={isProcessing}
-                className={`px-3 py-2 text-lg transition-all ${
-                  isProcessing
-                    ? "bg-green-700 opacity-70"
-                    : "hover:bg-green-700"
-                }`}
+                className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-semibold px-3.5 py-2 rounded-md transition shadow-sm disabled:opacity-50"
               >
-                −
+                <FaShoppingCart size={12} />
+                <span>Add</span>
               </button>
-              <span className="px-4 text-sm font-semibold select-none">
-                {quantity}
-              </span>
-              <button
-                onClick={handleIncrease}
-                disabled={isProcessing}
-                className={`px-3 py-2 text-lg transition-all ${
-                  isProcessing
-                    ? "bg-green-700 opacity-70"
-                    : "hover:bg-green-700"
-                }`}
-              >
-                +
-              </button>
-            </div>
-          )}
+            ) : (
+              <div className="flex items-center border border-emerald-600 rounded-md overflow-hidden bg-emerald-50 text-emerald-800">
+                <button
+                  onClick={handleDecrease}
+                  disabled={isProcessing}
+                  className="px-2.5 py-1 text-xs hover:bg-emerald-100 font-bold transition"
+                >
+                  <FaMinus size={9} />
+                </button>
+                <span className="px-2 text-xs font-bold min-w-[20px] text-center">
+                  {quantity}
+                </span>
+                <button
+                  onClick={handleIncrease}
+                  disabled={isProcessing}
+                  className="px-2.5 py-1 text-xs hover:bg-emerald-100 font-bold transition"
+                >
+                  <FaPlus size={9} />
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
